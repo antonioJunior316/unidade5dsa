@@ -1,11 +1,19 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
+
+double tempoTotalEspera = 0;
+double tempoTotalAtendimento = 0;
+int pessoasAtendidas = 0;
+
 
 typedef struct Pessoa{
     char nome[50];
     int idade;
     struct Pessoa *prox;
+    time_t tempo;
 
 }Pessoa;
 
@@ -30,6 +38,7 @@ void  enfileirar(Fila *fila,char nome[],int idade){
     strcpy(novaPessoa->nome,nome);
     novaPessoa->idade = idade;
     novaPessoa->prox = NULL;
+    novaPessoa->tempo = time(NULL);
 
     if(fila->inicio == NULL){
         fila->inicio = novaPessoa;
@@ -46,7 +55,23 @@ void desenfileirando(Fila *fila){
         return;
     }
     Pessoa *remove = fila->inicio;
+
+    time_t inicioAtendimento = time(NULL);
+
+    double tempoEsperando = difftime(inicioAtendimento,remove->tempo);
+
+    sleep(5);
+
+    time_t fimAtendimento = time(NULL);
+    double tempoAtendimento = difftime(fimAtendimento,inicioAtendimento);
+
+    tempoTotalEspera += tempoEsperando;
+    tempoTotalAtendimento += tempoAtendimento;
+    pessoasAtendidas++;
+
     printf("Atendimento realizado nome = %s idade = %d\n",remove->nome,remove->idade);
+    printf("tempo de esperando : %0.f\n",tempoEsperando);
+    printf("Tempo de atendimento : %.0f\n",tempoAtendimento);
 
     fila->inicio = remove->prox;
     if(fila->inicio == NULL){
@@ -70,6 +95,16 @@ void mostrandoAFila(Fila *fila){
     
 }
 
+void mediaDeTempo(){
+    if(pessoasAtendidas == 0){
+        printf("nao existem pessoas pra atender!!!!\n");
+        return ;
+    }
+    printf("\ninformações\n");
+    printf("Tempo de espera : %.0f segundos\n",tempoTotalEspera / pessoasAtendidas);
+    printf("Tempo media do atendimento : %.0f segundos\n",tempoTotalAtendimento/pessoasAtendidas);
+}
+
 int main(){
     Fila fila;
     
@@ -83,6 +118,7 @@ int main(){
         printf("1 - enfileira pessoa\n");
         printf("2 - Atender (retira pessoa)\n");
         printf("3 - Mostrando fila completa\n");
+        printf("4 - Media de tempo do atendimento\n");
         printf("0 - saindo\n");
         printf("Escolha : ");
 
@@ -110,7 +146,10 @@ int main(){
             case 3:
                 mostrandoAFila(&fila);
                 break;
-
+            
+            case 4:
+                mediaDeTempo();
+                break;
             case 0:
                 printf("Encerrando sistema...\n");
                 break;
